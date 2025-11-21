@@ -431,9 +431,9 @@ class FeatBoostClassifier(BaseEstimator):
                         % (iteration_number - 1)
                     )
                     self.stopping_condition_ = "variable_selected_twice"
-                    self.selected_subset_ = self._all_selected_variables[:]
-                    self.complete_subset_ = self._all_selected_variables[:]
-                    self.accuracy_ = self.accuracy_
+                    self.selected_subset_ = self._all_selected_variables[:-1]
+                    self.complete_subset_ = self._all_selected_variables[:-1]
+                    self.accuracy_ = self.accuracy_[:-1]
 
                 elif self.reset is True:
                     # re-set the sample weights and epsilon
