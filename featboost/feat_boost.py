@@ -49,7 +49,7 @@ class FeatBoostClassifier(BaseEstimator):
                 The maximum number of features to be selected.
                 The algorithm returns a feature subset of size less than or equal to "max_number_of_features" amount of
 
-        siso_ranking_size : int OR list  Optional (default=5)
+        siso_ranking_size : int OR list  Optional (default=5) Note: must be <= #features in dataset.
                 The number of variables evaluated at each step.
                 The first 'siso_ranking_size' variables after Input Ranking are used
                 to determine the selected variable. Corresponds to parameters /
@@ -242,6 +242,7 @@ class FeatBoostClassifier(BaseEstimator):
             The input matrix X's columns are reduced to the features selected by
                         FeatBoost.
         """
+        assert(self.siso_ranking_size > X.size), "siso_ranking_size cannot be greater than the number of features."
         return self._fit_transform(X, Y)
 
     def _fit(self, X, Y, feature_names=None, global_sample_weights=None):
