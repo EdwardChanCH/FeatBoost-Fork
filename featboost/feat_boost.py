@@ -33,7 +33,7 @@ class FeatBoostClassifier(BaseEstimator):
                 used for the Ranking step, e2 is used for the SISO step, e1 is used
                 for the MISO step.
                 Estimators supported:
-                1) XGBoost Classifier
+                1) XGBoost Classifier # Note: Kind of works with XGBoost Regressor.
                 2) Random Forest Classifier
                 3) Extra Trees Classifier
 
@@ -49,7 +49,7 @@ class FeatBoostClassifier(BaseEstimator):
                 The maximum number of features to be selected.
                 The algorithm returns a feature subset of size less than or equal to "max_number_of_features" amount of
 
-        siso_ranking_size : int OR list  Optional (default=5) Note: must be <= #features in dataset.
+        siso_ranking_size : int OR list  Optional (default=5) # Note: must be <= #features in dataset.
                 The number of variables evaluated at each step.
                 The first 'siso_ranking_size' variables after Input Ranking are used
                 to determine the selected variable. Corresponds to parameters /
@@ -93,7 +93,8 @@ class FeatBoostClassifier(BaseEstimator):
 
         metric: String, Optional (default='acc')
                 The evaluation metric for selecting the best feature. The default metric
-                is classification accuracy. 'f1' is the other available option.
+                'acc' is classification accuracy.
+                'f1' is the other available option.
                 'mcc' or matthews correlation coefficient can be used for binary cases.
 
         xgb_importance: String, Optional (default='gain')
@@ -505,7 +506,7 @@ class FeatBoostClassifier(BaseEstimator):
                         sample_weight=self._global_sample_weights[train_index],
                     )
 
-                yHat_test = self.estimator[1].predict(X_test)
+                yHat_test = self.estimator[1].predict(X_test).round() # Quick fix, turns continuous targets to multiclass targets.
                 # calculate the required metric
                 if self.metric == "acc":
                     acc_t = accuracy_score(y_test, yHat_test)
@@ -550,7 +551,7 @@ class FeatBoostClassifier(BaseEstimator):
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = Y[train_index], Y[test_index]
             self.estimator[1].fit(X_train, np.ravel(y_train))  # changed estimator!
-            yHat_test = self.estimator[1].predict(X_test)
+            yHat_test = self.estimator[1].predict(X_test).round() # Quick fix, turns continuous targets to multiclass targets.
             # find performance based on selected metric
             if self.metric == "acc":
                 acc_t = accuracy_score(y_test, yHat_test)
@@ -565,7 +566,7 @@ class FeatBoostClassifier(BaseEstimator):
         acc_t_miso = np.mean(acc_t_folds)
         # Calculate the residual weights from fitting on the entire dataset.
         self.estimator[0].fit(X, np.ravel(Y))
-        yHat_train_full = self.estimator[0].predict(X)
+        yHat_train_full = self.estimator[0].predict(X).round() # Quick fix, turns continuous targets to multiclass targets.
         if self.loss == "adaboost":
             # Determine the missclassified samples.
             acc_train_full = accuracy_score(Y, yHat_train_full)
@@ -602,7 +603,7 @@ class FeatBoostClassifier(BaseEstimator):
             # Gets all the labels.
             labels = np.unique(np.ravel(Y))
             Y_class = np.zeros((len(Y), len(labels)))
-            prediction_probabiltiy = self.estimator[0].predict_proba(X)
+            prediction_probabiltiy = self.estimator[0].predict_proba(X) # Note: XGBoostRegressor() lacks this.
             probability_weight = np.zeros(np.shape(Y))
             # Generates One-Hot encodings for Multi-Class Problems
             for i in range(0, len(X)):
